@@ -1,0 +1,38 @@
+name: Release Build with MSVC
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup Visual Studio environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Compile with MSVC
+        run: |
+          cd USB-File-Diff-Finder
+          cl /EHsc /std:c++17 /O2 /Fe:USBRDFC.exe USBRDFC.cpp
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: USBRDFC-${{ github.ref_name }}
+          path: USB-File-Diff-Finder/USBRDFC.exe
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: USB-File-Diff-Finder/USBRDFC.exe
+          generate_release_notes: true
